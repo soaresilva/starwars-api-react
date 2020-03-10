@@ -8,7 +8,7 @@ class App extends Component {
     this.state = {
       loading: true,
       character: {},
-      characterFilm: {}
+      characterFilms: []
     };
   }
 
@@ -16,30 +16,24 @@ class App extends Component {
     try {
       const response = await fetch(url);
       const data = await response.json();
-      console.log("data", data);
       this.setState({
-        // ...data,
         loading: false,
         character: data
       });
-    } catch (err) {
-      this.setState({
-        error: true,
-        errorMessage: err.message
-      });
-    }
-  };
+      const filmUrls = data.films;
 
-  getMovieData = async () => {
-    const firstmovieurl = "https://swapi.co/api/films/2/";
-    try {
-      const response = await fetch(firstmovieurl);
-      const firstmovie = await response.json();
-      console.log("data", firstmovie);
-      this.setState({
-        // ...data,
-        loading: false,
-        characterFilm: firstmovie
+      let films = [];
+      for (const url of filmUrls) {
+        const filmResponse = await fetch(url);
+        const filmData = await filmResponse.json();
+        films = [...films, filmData];
+      }
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          loading: false,
+          characterFilms: films
+        };
       });
     } catch (err) {
       this.setState({
@@ -51,12 +45,18 @@ class App extends Component {
 
   componentDidMount() {
     this.getData();
-    this.getMovieData();
   }
 
   render() {
-    console.log("this.state", this.state);
-    // console.log("this.state", this.state.characterFilm.title);
+    // console.log("this.state", this.state);
+    const films = this.state.characterFilms.map((film, index) => {
+      return (
+        <p key={index}>
+          {film.title} ({film.release_date})
+        </p>
+      );
+    });
+
     return (
       <div className="App">
         <div className="charinfo">
@@ -79,8 +79,8 @@ class App extends Component {
             <strong>Homeworld:</strong> {this.state.character.homeworld}
           </div>
           <div>
-            <strong>Appears in:</strong> {this.state.characterFilm.title} (
-            {this.state.characterFilm.release_date})
+            <strong>Appears in:</strong>
+            {films}
           </div>
         </div>
       </div>
